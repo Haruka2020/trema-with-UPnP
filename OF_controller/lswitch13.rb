@@ -1,7 +1,7 @@
 require 'fdb'
 
 # An OpenFlow controller that emulates a layer-2 switch.
-class Learning_Switch13 < Trema::Controller
+class LearningSwitch13 < Trema::Controller
   timer_event :age_fdb, interval: 5.sec
 
   INGRESS_FILTERING_TABLE_ID = 0
@@ -24,7 +24,7 @@ class Learning_Switch13 < Trema::Controller
 
   def packet_in(_datapath_id, packet_in)
     @fdb.learn(packet_in.source_mac, packet_in.in_port)
-    user_check_before_flow_mod(packet_in,add_forwarding_flow_and_packet_out(packet_in))
+    add_forwarding_flow_and_packet_out(packet_in) if flow_mod_ok?()
   end
 
   def age_fdb
@@ -32,13 +32,14 @@ class Learning_Switch13 < Trema::Controller
   end
 
   private
-  def user_check_before_flow_mod(packet_in,flow_mod)
+  def flow_mod_ok?()
     puts "flow_mod OK?"
     answer = STDIN.gets.chomp!
     if(answer=='y')
-      flow_mod
+      return true
     else
       puts"refused flow_mod"
+      return false
     end
   end
   def add_forwarding_flow_and_packet_out(packet_in)
