@@ -24,7 +24,7 @@ class LearningSwitch13 < Trema::Controller
 
   def packet_in(_datapath_id, packet_in)
     @fdb.learn(packet_in.source_mac, packet_in.in_port)
-    add_forwarding_flow_and_packet_out(packet_in)
+    user_check_before_flow_mod(packet_in,add_forwarding_flow_and_packet_out(packet_in))
   end
 
   def age_fdb
@@ -32,7 +32,15 @@ class LearningSwitch13 < Trema::Controller
   end
 
   private
-
+  def user_check_before_flow_mod(packet_in,flow_mod)
+    puts "flow_mod OK?"
+    answer = STDIN.gets.chomp!
+    if(answer=='y')
+      flow_mod
+    else
+      puts"refused flow_mod"
+    end
+  end
   def add_forwarding_flow_and_packet_out(packet_in)
     port_no = @fdb.lookup(packet_in.destination_mac)
     add_forwarding_flow_entry(packet_in, port_no) if port_no
