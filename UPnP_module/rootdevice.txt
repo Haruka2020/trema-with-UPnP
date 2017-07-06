@@ -1,0 +1,40 @@
+from 192.168.11.9 45391HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+DATE: Mon, 03 Jan 2000 04:28:06 GMT
+EXT:
+LOCATION: http://192.168.11.9:49152/description.xml
+OPT: "http://schemas.upnp.org/upnp/1/0/"; ns=01
+01-NLS: 67cefb78-1dd2-11b2-919b-8f2c572a979c
+SERVER: Linux/2.6.27.39, UPnP/1.0, Portable SDK for UPnP devices/1.6.18
+X-User-Agent: redsonic
+ST: upnp:rootdevice
+USN: uuid:10f2d862-21a5-4f88-9a01-121770ecd144::upnp:rootdevice
+
+========================================from 192.168.11.1 1900HTTP/1.1 200 OK
+Cache-Control: max-age=600
+Date: Thu, 06 Jul 2017 15:01:55 GMT
+Ext: 
+Location: http://192.168.11.1:16222/WFADevice.xml
+Server: POSIX UPnP/1.0 UPnP Stack/2012.3.14.0
+ST: upnp:rootdevice
+USN: uuid:387ee1a2-722c-11e3-a4df-435391db459f::upnp:rootdevice
+
+========================================from 192.168.11.1 1900HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+DATE: Thu, 06 Jul 2017 15:01:55 GMT
+EXT:
+LOCATION: http://192.168.11.1:50324/gatedesc.xml
+SERVER: Linux/2.6.36.4 UPnP/1.0 Intel_SDK_for_UPnP_devices/1.2
+ST: upnp:rootdevice
+USN: uuid:384e8dc2-722c-11e3-a0d8-5b8698f4998a::upnp:rootdevice
+
+========================================from 192.168.11.1 1900HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+DATE: Thu, 06 Jul 2017 15:01:55 GMT
+EXT:
+LOCATION: http://192.168.11.1:50324/gatedesc.xml
+SERVER: Linux/2.6.36.4 UPnP/1.0 Intel_SDK_for_UPnP_devices/1.2
+ST: upnp:rootdevice
+USN: uuid:384e8dc2-722c-11e3-a0d8-5b8698f4998a::upnp:rootdevice
+
+========================================
