@@ -16,6 +16,7 @@ def main():
              charset='utf8',
              cursorclass=pymysql.cursors.DictCursor
         )
+    insert_rootDevice(db,rootdevice_dict)
     insert_service(db,service_dict)
     db.close()
 
