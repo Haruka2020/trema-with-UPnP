@@ -19,6 +19,10 @@ def get_UDN(soup):
     UDN = soup.UDN.text
     return UDN
 
+def get_manufacture(soup):
+    manufacturer = soup.manufacturer.text
+    return manufacturer
+
 def get_ip_and_port(location):
     location = re.search(r'.*?//(.*?):(.*?)/',location,re.I)
     ip = location.group(1)
@@ -31,7 +35,8 @@ def get_device_dict(location):
     UDN = get_UDN(soup)
     friendlyName = get_friendlyName(soup)
     servicelist = get_service_list(soup)
-    device_data = {'friendlyName':friendlyName,'servicelist':servicelist,'ip':ip,'port':port}
+    manufacturer = get_manufacture(soup)
+    device_data = {'friendlyName':friendlyName,'servicelist':servicelist,'ip':ip,'port':port,'manufacturer':manufacturer}
     device_dict = {UDN:device_data}
     return device_dict
 
@@ -40,3 +45,14 @@ location = 'http://192.168.11.1:50324/gatedesc.xml'
 
 device_dict = get_device_dict(location)
 print(device_dict)
+
+"""
+device_dect
+{uuid:data_dict{}}
+
+data_dict
+{'friendlyName':friendlyName,'servicelist':servicelist[],'ip':ip,'port':port,'manufacturer':manufacturer}
+
+servicelist
+[service,service,.......]
+"""
