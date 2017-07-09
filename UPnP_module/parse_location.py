@@ -16,6 +16,17 @@ def main():
     print(service_dict)
 
 #-----------------------------------------------------------------
+def get_device_and_service_dict(rootdevice_dict):
+    device_dict = {}
+    service_dict = {}
+    for location in rootdevice_dict.values():
+        device_dict.update(get_device_dict(location))
+    for location in rootdevice_dict.values():
+        service_dict.update(get_service_dict(location))
+    return device_dict,service_dict
+
+
+
 
 def get_rootdevice_dict_scrape(file):
     f = open(file,'r')
@@ -61,6 +72,12 @@ def get_ip_and_port(location):
     port = location.group(2)
     return ip,port
 
+def get_manufacture(soup):
+    manufacturer = soup.manufacturer.text
+    return manufacturer
+
+
+
 def get_device_dict(location):
     ip,port = get_ip_and_port(location)
     xml = urlopen(location)
@@ -69,7 +86,8 @@ def get_device_dict(location):
     deviceType = get_deviceType(soup)
     friendlyName = get_friendlyName(soup)
     servicelist = get_service_list(soup)
-    device_data = {'deviceType':deviceType,'friendlyName':friendlyName,'servicelist':servicelist,'ip':ip,'port':port}
+    manufacturer  = get_manufacture(soup)
+    device_data = {'deviceType':deviceType,'friendlyName':friendlyName,'servicelist':servicelist,'ip':ip,'port':port,'manufacturer':manufacturer}
     device_dict = {UDN:device_data}
     return device_dict
 
@@ -82,13 +100,12 @@ def get_service_dict(location):
     for device in soup.find_all('device'):
         servicelist = device.serviceList
         deviceUDN = device.UDN.text
-        print(device.friendlyName.text)
         for service in servicelist.find_all('service'):
             serviceType = service.serviceType.text
             controlURL = service.controlURL.text
             SCPDURL = service.SCPDURL.text
             serviceID = service.serviceId.text
-            service_data = {'rootUDN':rootUDN,'deviceUDN':deviceUDN,'serviceType':serviceType,'controlURL':controlURL,'SCPDURL':SCPDURL}
+            service_data = {'serviceID':serviceID,'rootUDN':rootUDN,'deviceUDN':deviceUDN,'serviceType':serviceType,'controlURL':controlURL,'SCPDURL':SCPDURL}
             service_list.append(service_data)
         service_dict = {rootUDN:service_list}
     return service_dict
