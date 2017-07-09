@@ -1,9 +1,41 @@
 import re
-from bs4 import BeautifulSoup
+import sqlite3
 from urllib.request import urlopen
 import urllib.request
+from bs4 import BeautifulSoup
 
 
+def main():
+    rootdevice_dict = get_rootdevice_dict_scrape('./rootdevice.txt')
+    device_dict = {}
+    service_dict = {}
+    for location in rootdevice_dict.values():
+        device_dict.update(get_device_dict(location))
+    for location in rootdevice_dict.values():
+        service_dict.update(get_service_dict(location))
+    print(service_dict)
+
+#-----------------------------------------------------------------
+
+def get_rootdevice_dict_scrape(file):
+    f = open(file,'r')
+    lines=f.readlines()
+    f.close()
+    rootdevice_dict = {}
+    uuid = None
+    location = None
+    for line in lines:
+        if(re.search(r'location.*',line,re.I)):
+            location = re.search(r'location.*',line,re.I).group()
+            location = location.split(' ')[1]
+        if(re.search(r'USN.*',line,re.I)):
+            uuid = re.search(r'USN.*',line,re.I).group()
+            uuid = uuid.split(' ')[1]
+        if(location and uuid):
+            rootdevice_dict[uuid]=location
+            location = None
+            uuid = None
+    return rootdevice_dict
 
 def get_service_list(soup):
     servicelist = []
@@ -19,29 +51,27 @@ def get_UDN(soup):
     UDN = soup.UDN.text
     return UDN
 
-def get_manufacture(soup):
-    manufacturer = soup.manufacturer.text
-    return manufacturer
+def get_deviceType(soup):
+    deviceType = soup.deviceType.text
+    return deviceType
 
 def get_ip_and_port(location):
     location = re.search(r'.*?//(.*?):(.*?)/',location,re.I)
     ip = location.group(1)
     port = location.group(2)
     return ip,port
+
 def get_device_dict(location):
     ip,port = get_ip_and_port(location)
     xml = urlopen(location)
     soup = BeautifulSoup(xml,'xml')
     UDN = get_UDN(soup)
+    deviceType = get_deviceType(soup)
     friendlyName = get_friendlyName(soup)
     servicelist = get_service_list(soup)
-    manufacturer = get_manufacture(soup)
-    device_data = {'friendlyName':friendlyName,'servicelist':servicelist,'ip':ip,'port':port,'manufacturer':manufacturer}
+    device_data = {'deviceType':deviceType,'friendlyName':friendlyName,'servicelist':servicelist,'ip':ip,'port':port}
     device_dict = {UDN:device_data}
     return device_dict
-def get_service_dict(soup):
-    soup = BeautifulSoup(xml,lo)
-    root = get_UDN(soup)
 
 def get_service_dict(location):
     service_list = []
@@ -63,13 +93,8 @@ def get_service_dict(location):
         service_dict = {rootUDN:service_list}
     return service_dict
 
-
-location = 'http://192.168.11.1:50324/gatedesc.xml'
-
-device_dict = get_device_dict(location)
-service_dict = get_service_dict(location)
-print(service_dict)
-
+if __name__ == '__main__':
+    main()
 
 """
 device_dict
