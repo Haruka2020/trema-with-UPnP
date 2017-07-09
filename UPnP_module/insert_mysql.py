@@ -8,14 +8,8 @@ def main():
 
 
     #接続情報
-    db = pymysql.connect(
-             host='192.168.11.11',
-             user='haruka',
-             password='password',
-             db='UPnP_List',
-             charset='utf8',
-             cursorclass=pymysql.cursors.DictCursor
-        )
+    db = connect_local_db()
+    db = connect_remote_db()
     insert_rootDevice(db,rootdevice_dict)
     insert_service(db,service_dict)
     db.close()
@@ -52,6 +46,32 @@ def insert_service(db,service_dict):
             stmt.execute("Insert IGNORE into service VALUES(%s, %s, %s, %s, %s, %s)" ,(serviceID,serviceType,deviceUDN,rootUDN,controlURL,SCPDURL))
             db.commit()
     stmt.close()
+
+def connect_local_db():
+    db = pymysql.connect(
+             unix_socket='/Applications/MAMP/tmp/mysql/mysql.sock',
+             user='root',
+             password='root',
+             db='UPnP_List',
+             charset='utf8',
+             port='8889',
+             cursorclass=pymysql.cursors.DictCursor
+    )
+    return db
+
+def connect_remote_db():
+    db = pymysql.connect(
+             host='192.168.11.11',
+             user='haruka',
+             password='password',
+             db='UPnP_List',
+             charset='utf8',
+             cursorclass=pymysql.cursors.DictCursor
+    )
+    return db
+
+
+
 if __name__ == '__main__':
     main()
 
