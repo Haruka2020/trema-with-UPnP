@@ -1,8 +1,4 @@
-require "socket"
-
-body,id = `ruby lan_suggest.rb 192.168.11.1 50324 192.168.11.11`
-system("ruby send_mail/send_message.rb '#{body}'")
-
+require 'socket'
 port = 9999
 server = TCPServer.open(port)
 
@@ -20,5 +16,3 @@ while true
 end
 
 server.close
-#body =`ruby wan_suggest.rb 192.168.11.1 50324 192.168.11.13`
-#puts body

@@ -47,7 +47,7 @@ end
 def get_wan_link(id,password)
   body ="以下のリンクにアクセスして、ルール設定の許可をして下さい(LAN内からのみ)"
   body<<"\nhttps://192.168.11.11/check.php?id=#{id}&password=#{password}'\n"
-  return body	
+  return body
 end
 
 def get_device_results(client,ip,port)
@@ -69,7 +69,7 @@ def set_body_device_service(body,device_results,service_results)
     body<<"(#{deviceType}、#{record['manufacturer']}) を利用しようとしています。\n"
     deviceID = record['deviceID']
   end
-  body<<"このデバイスは以下のサービス提供します\n"
+  body<<"このデバイスは以下のサービスを提供します\n"
   service_results.each do |record|
     serviceType = record['serviceType'].match(%r'.*:(.+?):(.+?)')[1]
     body<<"・#{serviceType}\n"
