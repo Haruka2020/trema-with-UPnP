@@ -1,5 +1,6 @@
 from parse_location import *
 import pymysql
+import platform
 
 
 def main():
@@ -8,8 +9,11 @@ def main():
 
 
     #接続情報
-    db = connect_local_db()
-    db = connect_remote_db()
+    if(platform.system()=='Darwin'):
+        db = connect_mac_db()
+    else:
+        db = connect_ubuntu_db()
+
     insert_rootDevice(db,rootdevice_dict)
     insert_service(db,service_dict)
     db.close()
@@ -47,7 +51,7 @@ def insert_service(db,service_dict):
             db.commit()
     stmt.close()
 
-def connect_local_db():
+def connect_mac_db():
     db = pymysql.connect(
              unix_socket='/Applications/MAMP/tmp/mysql/mysql.sock',
              user='root',
@@ -59,10 +63,10 @@ def connect_local_db():
     )
     return db
 
-def connect_remote_db():
+def connect_ubuntu_db():
     db = pymysql.connect(
-             host='192.168.11.11',
-             user='haruka',
+             host='localhost',
+             user='root',
              password='password',
              db='UPnP_List',
              charset='utf8',

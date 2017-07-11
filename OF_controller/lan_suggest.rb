@@ -1,8 +1,9 @@
-require './make_suggest'
+cd = File.dirname(__FILE__)
+require "#{cd}/make_suggest"
 def main(ip,port,s_ip)
   body = ""
   body = get_suggest(ip,port,s_ip)
-  id,password,remote_password = insert_password()
+  id,password,remote_password = insert_password_and_body(body)
   body << get_lan_link(id,password,remote_password)
   puts body
 end

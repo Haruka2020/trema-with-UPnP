@@ -46,7 +46,7 @@ def send_mail(body)
 
   message = RMail::Message.new
   message.header['To'] = "vessel.bum1077.@gmail.com"
-  message.header['From'] = "vessel.bum1077@gmail.com"
+  message.header['From'] = "SDN Controller"
   message.body = "Test message"
   message.body = body
   message.header['Subject'] = "Test"

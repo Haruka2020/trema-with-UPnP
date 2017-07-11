@@ -1,13 +1,14 @@
+cd = File.dirname(__FILE__)
 require 'rbconfig'
 require 'mysql2'
-require './get_db'
+require "#{cd}/get_db"
 
-def insert_password()
+def insert_password_and_body(body)
   client = get_db
   id =''
   password = Array.new(32){[*:a..:z,*0..9].sample}.join
   remote_password = Array.new(32){[*:a..:z,*0..9].sample}.join
-  sql = %Q{Insert Into UPnP_List.OneTime (password,remote_password) Values ( '#{password}','#{remote_password}'  ) }
+  sql = %Q{Insert Into UPnP_List.OneTime (password,remote_password,body) Values ( '#{password}','#{remote_password}','#{body}'  ) }
   results =client.query(sql)
   sql = %Q{select last_insert_id()}
   results = client.query(sql)
@@ -16,5 +17,3 @@ def insert_password()
   end
   return id,password,remote_password
 end
-
-insert_password

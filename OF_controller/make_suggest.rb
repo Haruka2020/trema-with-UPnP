@@ -1,6 +1,8 @@
+cd = File.dirname(__FILE__)
 require 'mysql2'
-require './mysql/insert_password'
-require './mysql/get_db'
+require "#{cd}/mysql/get_db"
+require "#{cd}/mysql/insert_password"
+
 def main
   ip = '192.168.11.1'
   port = '50324'
@@ -42,7 +44,7 @@ end
 
 def get_wan_link(id,password)
   body ="以下のリンクにアクセスして、ルール設定の許可をして下さい"
-  body<<"\nhttps://192.168.11.11/check.php?id=#{id}&password=#{password}\n"
+  body<<"\nhttps://192.168.11.11/check.php?id=#{id}&password=#{password}'\n"
   return body
 end
 
