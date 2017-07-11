@@ -34,6 +34,8 @@ class LearningSwitch13 < Trema::Controller
   private
   def flow_mod_ok?()
     puts "flow_mod OK?"
+    body = `ruby lan_suggest.rb 192.168.11.1 50324 192.168.11.11`
+    puts body
     answer = STDIN.gets.chomp!
     if(answer=='y')
       return true
