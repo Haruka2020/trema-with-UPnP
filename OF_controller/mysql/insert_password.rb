@@ -1,5 +1,9 @@
+require 'rbconfig'
+require 'mysql2'
+require './get_db'
+
 def insert_password()
-  client = Mysql2::Client.new(:host => 'localhost', :username => 'root', :password => 'root',:socket =>'/Applications/MAMP/tmp/mysql/mysql.sock')
+  client = get_db
   id =''
   password = Array.new(32){[*:a..:z,*0..9].sample}.join
   remote_password = Array.new(32){[*:a..:z,*0..9].sample}.join
@@ -12,3 +16,5 @@ def insert_password()
   end
   return id,password,remote_password
 end
+
+insert_password

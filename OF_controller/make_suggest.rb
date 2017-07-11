@@ -1,5 +1,6 @@
 require 'mysql2'
 require './mysql/insert_password'
+require './mysql/get_db'
 def main
   ip = '192.168.11.1'
   port = '50324'
@@ -12,8 +13,8 @@ end
 
 def get_suggest(ip,port,s_ip)
   body =""
-  local_client = Mysql2::Client.new(:host => 'localhost', :username => 'root', :password => 'root',:socket =>'/Applications/MAMP/tmp/mysql/mysql.sock')
-  body << set_body(ip,port,s_ip,local_client)
+  client = get_db()
+  body << set_body(ip,port,s_ip,client)
   return body
 end
 
@@ -71,6 +72,9 @@ def set_body_device_service(body,device_results,service_results)
   end
   return body
 end
+require 'rbconfig'
+
+
 
 
 
