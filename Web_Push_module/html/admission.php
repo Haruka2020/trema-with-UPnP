@@ -6,7 +6,8 @@ session_start();
     $id = $_SESSION['id'];
     $password = $_SESSION['password'];
     $admission = $_SESSION['admission'];
-    socket_write($socket,"$id,$password,$admission");
+    $dpid = $_SESSION['dpid'];
+    socket_write($socket,"$id,$password,$admission,$dpid");
     socket_close($socket);
     echo "ok";
   }else {

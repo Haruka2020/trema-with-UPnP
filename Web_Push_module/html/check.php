@@ -12,6 +12,8 @@
     $_SESSION['id'] = $id;
     $_SESSION['password'] = $db_pass;
     $_SESSION['body'] = $array['result'][0]['body'];
+    $_SESSION['dpid'] = $array['result'][0]['dpid'];
+
     header('Location: select.php');
   }else{
     echo "IDとパスワードの組み合わせが違います";
