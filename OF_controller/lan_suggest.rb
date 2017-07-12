@@ -6,7 +6,8 @@ def main(ip,port,s_ip,dpid)
   id,password,remote_password = insert_password_body_dpid(body,dpid)
   body << get_lan_link(id,password,remote_password)
   puts body
-  puts id
+  puts password
+  puts remote_password
 
 end
 
