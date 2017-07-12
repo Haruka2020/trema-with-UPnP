@@ -1,10 +1,10 @@
 cd = File.dirname(__FILE__)
 require "#{cd}/make_suggest"
-def main(ip,port,s_ip)
+def main(ip,port,s_ip,dpid)
   body = ""
   body = get_suggest(ip,port,s_ip)
   puts body
-  id,password = insert_password_and_body(body)
+  id,password = insert_password_and_body_and_dpid(body,dpid)
   body << get_wan_link(id,password)
   puts body
 end

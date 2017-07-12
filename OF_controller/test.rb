@@ -1,6 +1,7 @@
 require "socket"
 
-body,id = `ruby lan_suggest.rb 192.168.11.1 50324 192.168.11.11`
+body,id = `ruby lan_suggest.rb 192.168.11.1 50324 192.168.11.11 1`
+puts body
 system("ruby send_mail/send_message.rb '#{body}'")
 
 port = 9999
