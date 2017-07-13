@@ -24,7 +24,7 @@ class LearningSwitch13 < Trema::Controller
 
   def packet_in(_datapath_id, packet_in)
     @fdb.learn(packet_in.source_mac, packet_in.in_port)
-    add_forwarding_flow_and_packet_out(packet_in) if flow_mod_ok?()
+    add_forwarding_flow_and_packet_out(packet_in)
   end
 
   def age_fdb
@@ -34,7 +34,8 @@ class LearningSwitch13 < Trema::Controller
   private
   def flow_mod_ok?()
     puts "flow_mod OK?"
-    body = `ruby lan_suggest.rb 192.168.11.1 50324 192.168.11.11`
+    body = `/home/haruka/.rvm/rubies/ruby-2.3.0/bin/ruby
+ lan_suggest.rb 192.168.11.1 50324 192.168.11.11`
     puts body
     answer = STDIN.gets.chomp!
     if(answer=='y')
@@ -47,6 +48,7 @@ class LearningSwitch13 < Trema::Controller
   def add_forwarding_flow_and_packet_out(packet_in)
     port_no = @fdb.lookup(packet_in.destination_mac)
     add_forwarding_flow_entry(packet_in, port_no) if port_no
+    
     packet_out(packet_in, port_no || :flood)
   end
 

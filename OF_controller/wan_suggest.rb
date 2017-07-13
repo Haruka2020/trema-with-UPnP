@@ -7,6 +7,7 @@ def main(ip,port,s_ip,dpid)
   body << get_wan_link(id,password)
   puts body
   puts password
+  puts id
 end
 
 

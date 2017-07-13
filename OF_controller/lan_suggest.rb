@@ -8,6 +8,7 @@ def main(ip,port,s_ip,dpid)
   puts body
   puts password
   puts remote_password
+  puts id
 
 end
 
