@@ -1,0 +1,34 @@
+language: ruby
+cache: bundler
+sudo: false
+
+script: bundle exec rake travis
+
+before_install:
+  - gem update bundler
+
+bundler_args: --without development
+
+rvm:
+  - 2.0
+  - 2.1
+  - 2.2
+  - 2.3.0
+  - ruby-head
+
+matrix:
+  allow_failures:
+    - rvm: ruby-head
+  fast_finish: true
+
+notifications:
+  webhooks:
+    urls:
+      - https://webhooks.gitter.im/e/ca7b2e631cab5cddce0d
+    on_success: always
+    on_failure: always
+    on_start: always
+
+env:
+  global:
+    - secure: "roJa3FuYA6gLdV0vtUe1GyuAU2WQ+E+jraT9QeKKHRQSU2TKYgeJ7MmxG3vSpIoZsHEdmrZh0UVTrMO436UHAG5V+qbSmP2gld0vSI2qDQ2dXbNoAIVUHex2oCDTa5OC0sJbz9W8Yrd0XoTY0O5gObPn6QfTzAHKgPz7ZC9bBwo="

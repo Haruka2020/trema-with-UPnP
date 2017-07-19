@@ -1,0 +1,17 @@
+AllCops:
+  Include:
+    - Gemfile
+    - Guardfile
+    - Rakefile
+    - bin/*
+    - features/**/*.rb
+    - lib/**/*.rb
+    - phut.gemspec
+    - spec/**/*.rb
+    - tasks/*.rake
+
+Style/StringLiterals:
+  EnforcedStyle: single_quotes
+
+Style/DotPosition:
+  EnforcedStyle: trailing

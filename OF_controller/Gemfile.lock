@@ -88,6 +88,7 @@ PLATFORMS
 
 DEPENDENCIES
   file-utils
+  gli (= 2.13.4)
   google-api-client
   mysql2
   pry

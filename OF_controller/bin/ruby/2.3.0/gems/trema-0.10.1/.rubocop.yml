@@ -1,0 +1,17 @@
+AllCops:
+  Include:
+    - ./*.conf
+    - ./Gemfile
+    - ./Guardfile
+    - ./Rakefile
+    - tasks/*.rake
+  Exclude:
+    - tmp/**/*
+    - vendor/**/*
+    - !ruby/regexp /bin\/(?:(?!trema).)*$/
+
+Style/StringLiterals:
+  EnforcedStyle: single_quotes
+
+Style/DotPosition:
+  EnforcedStyle: trailing

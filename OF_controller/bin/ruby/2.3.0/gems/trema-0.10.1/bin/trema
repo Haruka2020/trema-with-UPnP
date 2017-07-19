@@ -1,0 +1,294 @@
+#!/usr/bin/env ruby
+$LOAD_PATH.unshift File.join(File.dirname(__FILE__), '..', 'lib')
+
+require 'drb/drb'
+require 'gli'
+require 'phut'
+require 'pio'
+require 'trema'
+
+# OpenFlow controller framework.
+module Trema
+  # trema command.
+  # rubocop:disable ModuleLength
+  module App
+    extend GLI::App
+
+    desc 'Displays the current runtime version'
+    program_desc 'Trema command-line tool'
+
+    version Trema::VERSION
+
+    desc 'Be verbose'
+    switch [:v, :verbose], negatable: false
+
+    desc 'Runs a trema application'
+    arg_name 'controller'
+    command :run do |c|
+      c.desc 'Runs as a daemon'
+      c.switch [:d, :daemonize], negatable: false
+      c.desc 'Specifies emulated network configuration'
+      c.flag [:c, :conf]
+      c.desc 'Use OpenFlow1.3'
+      c.switch :openflow13, default_value: false
+
+      c.desc 'Overrides the default openflow channel port'
+      c.flag [:p, :port]
+
+      c.desc 'Set logging level'
+      c.flag [:l, :logging_level], default_value: :info
+
+      c.desc 'Location to put pid files'
+      c.flag [:P, :pid_dir], default_value: Trema::DEFAULT_PID_DIR
+      c.desc 'Location to put log files'
+      c.flag [:L, :log_dir], default_value: Trema::DEFAULT_LOG_DIR
+      c.desc 'Location to put socket files'
+      c.flag [:S, :socket_dir], default_value: Trema::DEFAULT_SOCKET_DIR
+
+      c.action do |global_options, options, args|
+        Phut.pid_dir = options[:pid_dir]
+        Phut.log_dir = options[:log_dir]
+        Phut.socket_dir = options[:socket_dir]
+        Pio::OpenFlow.switch_version('OpenFlow13') if options[:openflow13]
+        begin
+          options[:logging_level] =
+            { debug: ::Logger::DEBUG,
+              info: ::Logger::INFO,
+              warn: ::Logger::WARN,
+              error: ::Logger::ERROR,
+              fatal: ::Logger::FATAL,
+              unknown: ::Logger::UNKNOWN
+            }.fetch(options[:logging_level].to_sym)
+          options[:logging_level] = ::Logger::DEBUG if global_options[:verbose]
+        rescue KeyError
+          raise(ArgumentError,
+                "Invalid log level: #{options[:logging_level]}")
+        end
+        require 'trema/switch'
+        Trema::Command.new.run(args, global_options.merge(options))
+      end
+    end
+
+    desc 'Print all flow entries'
+    arg_name 'switch'
+    command :dump_flows do |c|
+      c.desc 'Location to find socket files'
+      c.flag [:S, :socket_dir], default_value: Trema::DEFAULT_SOCKET_DIR
+
+      c.action do |_global_options, options, args|
+        puts Trema.fetch(args.first, options.fetch(:socket_dir)).dump_flows
+      end
+    end
+
+    desc 'Sends UDP packets to destination host'
+    command :send_packets do |c|
+      c.desc 'host that sends packets'
+      c.flag [:s, :source]
+      c.desc 'host that receives packets'
+      c.flag [:d, :dest]
+      c.desc 'number of packets to send'
+      c.flag [:n, :npackets], default_value: 1
+
+      c.desc 'Location to put socket files'
+      c.flag [:S, :socket_dir], default_value: Trema::DEFAULT_SOCKET_DIR
+
+      c.action do |_global_options, options, _args|
+        raise '--source option is mandatory' if options[:source].nil?
+        raise '--dest option is mandatory' if options[:dest].nil?
+        dest = Trema.fetch(options.fetch(:dest), options.fetch(:socket_dir))
+        Phut::VhostDaemon.
+          process(options.fetch(:source), options.fetch(:socket_dir)).
+          send_packets(dest, options.fetch(:npackets).to_i)
+      end
+    end
+
+    desc 'Shows stats of packets'
+    arg_name 'host'
+    command :show_stats do |c|
+      c.desc 'Location to find socket files'
+      c.flag [:S, :socket_dir], default_value: Trema::DEFAULT_SOCKET_DIR
+
+      c.action do |_global_options, options, args|
+        help_now!('host is required') if args.empty?
+
+        stats = Phut::VhostDaemon.process(args[0], options[:socket_dir]).stats
+
+        dests = stats[:tx].map { |each| each.destination_ip_address.to_s }.uniq
+        txstats = dests.map do |each|
+          all = stats[:tx].select { |pkt| pkt.destination_ip_address == each }
+          "#{all.first.source_ip_address} -> #{each} = " \
+          "#{all.size} packet#{all.size > 1 ? 's' : ''}"
+        end
+        unless txstats.empty?
+          puts 'Packets sent:'
+          txstats.each { |each| puts "  #{each}" }
+        end
+
+        sources = stats[:rx].map { |each| each.source_ip_address.to_s }.uniq
+        rxstats = sources.map do |each|
+          all = stats[:rx].select { |pkt| pkt.source_ip_address == each }
+          "#{each} -> #{all.first.destination_ip_address} = " \
+          "#{all.size} packet#{all.size > 1 ? 's' : ''}"
+        end
+        unless rxstats.empty?
+          puts 'Packets received:'
+          rxstats.each { |each| puts "  #{each}" }
+        end
+      end
+    end
+
+    desc 'Reset stats of packets'
+    command :reset_stats do |c|
+      c.desc 'Location to find socket files'
+      c.flag [:S, :socket_dir], default_value: Trema::DEFAULT_SOCKET_DIR
+
+      c.action do |_global_options, options, _args|
+        Trema.vhosts(options[:socket_dir]).each(&:reset_stats)
+      end
+    end
+
+    desc "Brings a switch's specified port up"
+    command :port_up do |c|
+      c.desc 'switch name'
+      c.flag [:s, :switch]
+      c.desc 'port'
+      c.flag [:p, :port]
+      c.desc 'Location to put socket files'
+      c.flag [:S, :socket_dir], default_value: Trema::DEFAULT_SOCKET_DIR
+
+      c.action do |_global_options, options, _args|
+        raise '--switch option is mandatory' if options[:switch].nil?
+        raise '--port option is mandatory' if options[:port].nil?
+        Trema.trema_processes(options[:socket_dir]).each do |trema|
+          begin
+            trema.port_up(options[:switch], options[:port].to_i)
+          rescue
+            next
+          end
+        end
+      end
+    end
+
+    desc "Brings a switch's specified port down"
+    command :port_down do |c|
+      c.desc 'switch name'
+      c.flag [:s, :switch]
+      c.desc 'port'
+      c.flag [:p, :port]
+      c.desc 'Location to put socket files'
+      c.flag [:S, :socket_dir], default_value: Trema::DEFAULT_SOCKET_DIR
+
+      c.action do |_global_options, options, _args|
+        raise '--switch option is mandatory' if options[:switch].nil?
+        raise '--port option is mandatory' if options[:port].nil?
+        Trema.trema_processes(options[:socket_dir]).each do |trema|
+          begin
+            trema.port_down(options[:switch], options[:port].to_i)
+          rescue
+            next
+          end
+        end
+      end
+    end
+
+    desc 'Stops a vswitch or a vhost'
+    arg_name 'name'
+    command :stop do |c|
+      c.desc 'Location to find socket files'
+      c.flag [:S, :socket_dir], default_value: Trema::DEFAULT_SOCKET_DIR
+
+      c.action do |_global_options, options, args|
+        help_now! if args.size != 1
+        Trema.fetch(args[0], options[:socket_dir]).stop
+      end
+    end
+
+    desc 'Deletes a virtual link'
+    arg_name 'endpoint1 endpoint2'
+    command :delete_link do |c|
+      c.desc 'Location to find socket files'
+      c.flag [:S, :socket_dir], default_value: Trema::DEFAULT_SOCKET_DIR
+
+      c.action do |_global_options, options, args|
+        help_now! if args.size != 2
+        Trema.fetch(args, options[:socket_dir]).stop
+      end
+    end
+
+    desc 'Starts the stopped vswitch or vhost again'
+    arg_name 'name'
+    command :start do |c|
+      c.desc 'Location to find socket files'
+      c.flag [:S, :socket_dir], default_value: Trema::DEFAULT_SOCKET_DIR
+
+      c.action do |_global_options, options, args|
+        help_now! if args.size != 1
+        Trema.fetch(args[0], options[:socket_dir]).run
+      end
+    end
+
+    desc 'Terminates all trema processes'
+    arg_name 'controller_name'
+    command :killall do |c|
+      c.desc 'Kill all known trema processes'
+      c.switch :all, default_value: false, negatable: false
+      c.desc 'Location to find socket files'
+      c.flag [:S, :socket_dir], default_value: Trema::DEFAULT_SOCKET_DIR
+
+      c.action do |_global_options, options, args|
+        if options[:all]
+          Trema.trema_processes(options[:socket_dir]).each do |each|
+            begin
+              each.killall
+            rescue DRb::DRbConnError
+              true # OK (trema process exitted).
+            end
+          end
+        else
+          help_now! if args.size != 1
+          begin
+            Trema.trema_process(args[0], options[:socket_dir]).killall
+          rescue DRb::DRbConnError
+            true # OK (trema process exitted).
+          end
+        end
+      end
+    end
+
+    # rubocop:disable LineLength
+    desc 'Opens a new shell or runs a command in the specified network namespace'
+    arg_name 'name [command]'
+    command :netns do |c|
+      c.action do |_global_options, _options, args|
+        command_args = args[1..-1]
+        if command_args && !command_args.empty?
+          system "sudo ip netns exec #{args[0]} #{command_args.join(' ')}"
+        else
+          system "sudo ip netns exec #{args[0]} #{ENV['SHELL']}"
+        end
+      end
+    end
+    # rubocop:enable LineLength
+
+    default_command :help
+
+    on_error do |e|
+      case e
+      when OptionParser::ParseError,
+           Trema::NoControllerDefined,
+           Phut::OpenVswitch::AlreadyRunning,
+           GLI::UnknownCommandArgument,
+           ArgumentError
+        true
+      when Interrupt
+        exit false
+      else
+        # show backtrace
+        raise e
+      end
+    end
+
+    exit run(ARGV)
+  end
+  # rubocop:enable ModuleLength
+end

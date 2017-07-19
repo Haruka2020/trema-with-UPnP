@@ -49,7 +49,7 @@ def send_mail(body)
   message.header['From'] = "SDN Controller"
   message.body = "Test message"
   message.body = body
-  message.header['Subject'] = "Test"
+  message.header['Subject'] = "Policy Sugesstion"
   service.send_user_message('me',upload_source: StringIO.new(message.to_s),content_type: 'message/rfc822')
 end
 
