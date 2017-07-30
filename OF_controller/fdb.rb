@@ -44,5 +44,8 @@ class FDB
 
   def age
     @db.delete_if { |_mac, entry| entry.aged_out? }
+    #@db.each do |key,value| 
+    	#puts "#{key} <> #{value.port_no}"
+    #end
   end
 end
